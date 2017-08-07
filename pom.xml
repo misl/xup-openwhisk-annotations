@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+
+  <modelVersion>4.0.0</modelVersion>
+  <prerequisites>
+    <maven>3.0.0</maven>
+  </prerequisites>
+
+  <groupId>nl.xup.openwhisk</groupId>
+  <artifactId>xup-openwhisk-root</artifactId>
+  <version>0.1.0</version>
+  <packaging>pom</packaging>
+
+  <name>Xup :: OpenWhisk :: root</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <gson.version>2.8.1</gson.version>
+    <junit.version>4.11</junit.version>
+
+    <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+  </properties>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>jcenter-snapshots</id>
+      <name>jcenter</name>
+      <url>http://oss.jfrog.org/artifactory/oss-snapshot-local/</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>jcenter-releases</id>
+      <name>jcenter</name>
+      <url>http://jcenter.bintray.com</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <repositories>
+    <repository>
+      <id>jcentral</id>
+      <name>bintray</name>
+      <url>http://jcenter.bintray.com</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>jcenter-snapshots</id>
+      <name>jcenter</name>
+      <url>http://oss.jfrog.org/artifactory/oss-snapshot-local/</url>
+    </repository>
+  </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <modules>
+    <module>annotations</module>
+    <module>examples</module>
+  </modules>
+
+</project>
+
