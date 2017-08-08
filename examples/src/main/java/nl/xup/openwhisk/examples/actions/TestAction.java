@@ -31,7 +31,7 @@ public class TestAction {
   }
 
   @OpenwhiskAction(name="privateAction", packageName="test")
-  private static JsonObject func3(JsonObject args) {
+  public static JsonObject func3(JsonObject args) {
     JsonObject response = new JsonObject();
     response.add("args", args);
     Gson gson = new GsonBuilder().create();
