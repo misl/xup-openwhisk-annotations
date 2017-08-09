@@ -28,6 +28,7 @@ public class OpenwhiskProcessorTest {
     assert_().about( javaSources() )
         .that( Arrays.asList( JavaFileObjects.forResource( "test/ValidSignatureAction.java" ) ) )
         .processedWith( new OpenwhiskProcessor() ).compilesWithoutError();
+    // TODO: check generated files.
     // .and().generatesFiles(
     // JavaFileObjects.forResource("META-INF/services/test.SomeService"),
     // JavaFileObjects.forResource("META-INF/services/test.AnotherService"));

@@ -1,4 +1,4 @@
-package nl.xup.openwhisk.examples.actions;
+package nl.xup.openwhisk.test.actions;
 
 import com.google.gson.JsonObject;
 

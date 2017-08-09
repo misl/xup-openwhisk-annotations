@@ -2,7 +2,9 @@ package nl.xup.openwhisk.annotation.processor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,9 @@ import javax.tools.JavaFileObject;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Joiner;
 
+import nl.xup.openwhisk.annotation.model.Action;
+import nl.xup.openwhisk.annotation.transform.Element2Action;
+
 @SupportedAnnotationTypes("nl.xup.openwhisk.annotation.OpenwhiskAction")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
@@ -45,6 +50,8 @@ public class OpenwhiskProcessor extends AbstractProcessor {
 
   @Override
   public boolean process( Set<? extends TypeElement> annotations, RoundEnvironment roundEnv ) {
+    final Collection<Action> actions = new ArrayList<>();
+
     // Loop over all supported annotations
     for (TypeElement annotation : annotations) {
       // Find all annotated methods
@@ -59,6 +66,9 @@ public class OpenwhiskProcessor extends AbstractProcessor {
       if (actionMethods.isEmpty()) {
         continue;
       }
+
+      actions.addAll( actionMethods.stream().map( new Element2Action() )
+          .collect( Collectors.<Action>toList() ) );
 
       // String className = ((TypeElement) actionMethods.get( 0 ).getEnclosingElement())
       // .getQualifiedName().toString();
