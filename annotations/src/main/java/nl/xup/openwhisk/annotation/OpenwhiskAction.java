@@ -7,7 +7,8 @@ import java.lang.annotation.*;
  * This annotation will ease registering actions with Openwhisk.
  * 
  * $> wsk action create <packageName>/<name> action.jar --main <annotatedMethod>
- * 
+ *            (--annotation key value)* 
+ *            (--param key value)*
  * 
  * @author misl
  */
@@ -27,4 +28,18 @@ public @interface OpenwhiskAction {
    * @return String with the package name
    */
   String packageName() default "";
+  
+  /**
+   * The Openwhisk annotations applicable for the action.
+   * 
+   * @return Array of OpenwhiskAnnotation 
+   */
+  OpenwhiskAnnotation[] annotations() default {};
+  
+  /**
+   * The Openwhisk parameters applicable for the action.
+   * 
+   * @return Array of OpenwhiskParameter
+   */
+  OpenwhiskParameter[] parameters() default {};
 }
