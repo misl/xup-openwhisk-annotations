@@ -35,6 +35,7 @@ public class OpenwhiskProcessor extends AbstractProcessor {
   // --------------------------------------------------------------------------
 
   private static final String SPACE = " ";
+  private static final String JSON_OBJECT = "com.google.gson.JsonObject";
   private static final Set<Modifier> EXPECTED_METHOD_MODIFIERS =
       new HashSet<>( Arrays.asList( Modifier.PUBLIC, Modifier.STATIC ) );
 
@@ -105,7 +106,7 @@ public class OpenwhiskProcessor extends AbstractProcessor {
 
 
     // Check return type
-    if (!"com.google.gson.JsonObject".equals( type.getReturnType().toString() )) {
+    if (!JSON_OBJECT.equals( type.getReturnType().toString() )) {
       processingEnv.getMessager().printMessage( Diagnostic.Kind.ERROR,
           "Signature error: @OpenwhiskAction annotation only applies to methods returning a JsonObject",
           element );
@@ -113,9 +114,15 @@ public class OpenwhiskProcessor extends AbstractProcessor {
     }
 
     // Check signature argument
-    if (type.getParameterTypes().size() > 1) {
+    if (type.getParameterTypes().size() != 1) {
       processingEnv.getMessager().printMessage( Diagnostic.Kind.ERROR,
           "Signature error: @OpenwhiskAction annotation only applies to methods with a single argument",
+          element );
+      return false;
+    }
+    if (!JSON_OBJECT.equals( type.getParameterTypes().get( 0 ).toString() )) {
+      processingEnv.getMessager().printMessage( Diagnostic.Kind.ERROR,
+          "Signature error: @OpenwhiskAction annotation only applies to methods with a single JsonObject argument",
           element );
       return false;
     }

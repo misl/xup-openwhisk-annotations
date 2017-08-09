@@ -52,4 +52,24 @@ public class OpenwhiskProcessorTest {
         .withErrorContaining( "methods returning a JsonObject" ).in( fileObject )
         .onLine( 14 ).atColumn( 24 );
   }
+
+  @Test
+  public void testActionDefInvalidArgumentCount() {
+    final JavaFileObject fileObject =
+        JavaFileObjects.forResource( "test/InvalidArgumentCountSignatureAction.java" );
+    assert_().about( javaSources() ).that( Arrays.asList( fileObject ) )
+        .processedWith( new OpenwhiskProcessor() ).failsToCompile()
+        .withErrorContaining( "methods with a single argument" ).in( fileObject )
+        .onLine( 14 ).atColumn( 28 );
+  }
+
+  @Test
+  public void testActionDefInvalidArgumentType() {
+    final JavaFileObject fileObject =
+        JavaFileObjects.forResource( "test/InvalidArgumentTypeSignatureAction.java" );
+    assert_().about( javaSources() ).that( Arrays.asList( fileObject ) )
+        .processedWith( new OpenwhiskProcessor() ).failsToCompile()
+        .withErrorContaining( "methods with a single JsonObject argument" ).in( fileObject )
+        .onLine( 14 ).atColumn( 28 );
+  }
 }
