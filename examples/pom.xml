@@ -28,10 +28,21 @@
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-junit</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -45,7 +56,7 @@
           <target>8</target>
           <generatedSourcesDirectory>${project.build.directory}/generated-sources/</generatedSourcesDirectory>
         </configuration>
-      </plugin>     
+      </plugin>
     </plugins>
   </build>
 
