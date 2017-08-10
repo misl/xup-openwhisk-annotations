@@ -24,7 +24,7 @@ public class ActionTest {
 
     // Verify
     assertThat( action, is( notNullValue() ) );
-    assertThat( action.getActionName(), is( nullValue() ) );
+    assertThat( action.getName(), is( nullValue() ) );
     assertThat( action.getPackageName(), is( nullValue() ) );
     assertThat( action.getEntrypoint(), is( nullValue() ) );
     assertThat( action.getAnnotations(), is( notNullValue() ) );
@@ -39,7 +39,7 @@ public class ActionTest {
     final Action action = new Action();
 
     // Execute
-    action.setActionName( "a" );
+    action.setName( "a" );
     action.setPackageName( "b" );
     action.setEntrypoint( "c" );
     action.getAnnotations().put( "d", new Annotation( "d", "dv" ) );
@@ -47,7 +47,7 @@ public class ActionTest {
 
     // Verify
     assertThat( action, is( notNullValue() ) );
-    assertThat( action.getActionName(), is( equalTo( "a" ) ) );
+    assertThat( action.getName(), is( equalTo( "a" ) ) );
     assertThat( action.getPackageName(), is( equalTo( "b" ) ) );
     assertThat( action.getEntrypoint(), is( equalTo( "c" ) ) );
     assertThat( action.getAnnotations().size(), is( 1 ) );

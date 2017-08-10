@@ -30,7 +30,7 @@ public class Element2Action implements Function<Element, Action> {
    */
   public Action apply( Element element ) {
     Action action = new Action();
-    action.setActionName( constructActionName( element ) );
+    action.setName( constructActionName( element ) );
     action.setPackageName( constructPackageName( element ) );
     action.setEntrypoint( constructEntrypoint( element ) );
     action.getAnnotations().putAll( constructAnnotations( element ) );

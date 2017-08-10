@@ -1,13 +1,7 @@
 package nl.xup.openwhisk.annotation.processor;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,15 +16,18 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ExecutableType;
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 
 import com.google.auto.service.AutoService;
-import com.google.common.base.Joiner;
 
+import nl.xup.openwhisk.annotation.OpenwhiskPackage;
 import nl.xup.openwhisk.annotation.model.Action;
+import nl.xup.openwhisk.annotation.model.Model;
+import nl.xup.openwhisk.annotation.model.Package;
 import nl.xup.openwhisk.annotation.transform.Element2Action;
+import nl.xup.openwhisk.annotation.transform.Element2Package;
 
-@SupportedAnnotationTypes("nl.xup.openwhisk.annotation.OpenwhiskAction")
+@SupportedAnnotationTypes({"nl.xup.openwhisk.annotation.OpenwhiskPackage",
+    "nl.xup.openwhisk.annotation.OpenwhiskAction"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class OpenwhiskProcessor extends AbstractProcessor {
@@ -39,7 +36,6 @@ public class OpenwhiskProcessor extends AbstractProcessor {
   // Constants
   // --------------------------------------------------------------------------
 
-  private static final String SPACE = " ";
   private static final String JSON_OBJECT = "com.google.gson.JsonObject";
   private static final Set<Modifier> EXPECTED_METHOD_MODIFIERS =
       new HashSet<>( Arrays.asList( Modifier.PUBLIC, Modifier.STATIC ) );
@@ -50,39 +46,21 @@ public class OpenwhiskProcessor extends AbstractProcessor {
 
   @Override
   public boolean process( Set<? extends TypeElement> annotations, RoundEnvironment roundEnv ) {
-    final Collection<Action> actions = new ArrayList<>();
+    final Model model = new Model();
 
     // Loop over all supported annotations
     for (TypeElement annotation : annotations) {
-      // Find all annotated methods
-      Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith( annotation );
+      switch (annotation.getSimpleName().toString()) {
+        case "OpenwhiskAction":
+          processActionAnnotation( model, annotation, roundEnv );
+          break;
+        case "OpenwhiskPackage":
+          processPackageAnnotation( model, annotation, roundEnv );
+          break;
 
-      // Check for incorrect method signatures
-      Map<Boolean, List<Element>> annotatedMethods = annotatedElements.stream()
-          .collect( Collectors.partitioningBy( element -> this.checkMethodSignature( element ) ) );
-
-      List<Element> actionMethods = annotatedMethods.get( true );
-
-      if (actionMethods.isEmpty()) {
-        continue;
+        default:
+          break;
       }
-
-      actions.addAll( actionMethods.stream().map( new Element2Action() )
-          .collect( Collectors.<Action>toList() ) );
-
-      // String className = ((TypeElement) actionMethods.get( 0 ).getEnclosingElement())
-      // .getQualifiedName().toString();
-      //
-      // Map<String, String> setterMap = actionMethods.stream().collect( Collectors.toMap(
-      // setter -> setter.getSimpleName().toString(),
-      // setter -> ((ExecutableType) setter.asType()).getParameterTypes().get( 0 ).toString() ) );
-      //
-      // try {
-      // writeBuilderFile( className, setterMap );
-      // } catch (IOException e) {
-      // e.printStackTrace();
-      // }
-
     }
 
     return true;
@@ -92,6 +70,74 @@ public class OpenwhiskProcessor extends AbstractProcessor {
   // Private methods
   // --------------------------------------------------------------------------
 
+  private void processActionAnnotation( final Model model, final TypeElement annotation,
+      final RoundEnvironment roundEnv ) {
+    // Find all annotated methods
+    Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith( annotation );
+
+    // Process and check for duplicates.
+    annotatedElements.stream()
+        .map( e -> {
+              // Only accepts verified elements
+              if ( !verifyMethodSignature( e ) ) {
+                return null;
+              }
+
+              final Action action = new Element2Action().apply( e );
+              Package pkg = model.getPackages().get( action.getPackageName() );
+              if ( pkg == null ) {
+                // No package declared yet. Log it..
+                processingEnv.getMessager().printMessage( Diagnostic.Kind.WARNING,
+                    "Missing @OpenwhiskPackage declaration for package '" + action.getPackageName() + "'!",
+                    e );
+                // .. and create one.
+                pkg = new Package();
+                pkg.setName( action.getPackageName() );
+                model.getPackages().put( pkg.getName(), pkg );
+              }
+              
+              // Check for duplicates
+              if (pkg.getActions().containsKey( action.getName() )) {
+                processingEnv.getMessager().printMessage( Diagnostic.Kind.WARNING,
+                    String.format( "Duplicate @OpenwhiskAction declaration for action '%s/%s'!", 
+                    pkg.getName(), action.getName()), e );
+                return null;
+              }
+
+              // Add action to package
+              pkg.getActions().put( action.getName(), action );
+              return action;
+            } )
+        .collect( Collectors.<Action>toList() );
+  }
+
+  private void processPackageAnnotation( final Model model, final TypeElement annotation,
+      final RoundEnvironment roundEnv ) {
+    // Find all annotated methods
+    Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith( annotation );
+
+    // Process and check for duplicates.
+    annotatedElements.stream()
+        .filter( e -> {
+              // Predicate is abused to check for duplicates
+              final String packageName = e.getAnnotation( OpenwhiskPackage.class ).name();
+              if (model.getPackages().containsKey( packageName )) {
+                processingEnv.getMessager().printMessage( Diagnostic.Kind.WARNING,
+                    "Duplicate @OpenwhiskPackage declaration for package '" + packageName + "'!",
+                    e );
+                return false;
+              }
+              
+              return true;
+            } )
+        .map( e -> { 
+              final Package pkg = new Element2Package().apply( e );
+              model.getPackages().put( pkg.getName(), pkg );
+              return pkg;
+            } )
+        .collect( Collectors.<Package>toList() );
+  }
+
   /**
    * Check whether the given element matches the Openwhisk Action method signature.
    * 
@@ -100,11 +146,9 @@ public class OpenwhiskProcessor extends AbstractProcessor {
    * @param element the element to check
    * @return True is signature matches, false otherwise.
    */
-  private boolean checkMethodSignature( final Element element ) {
+  private boolean verifyMethodSignature( final Element element ) {
     // Assume the method is a proper action method until proven not.
     final ExecutableType type = (ExecutableType) element.asType();
-    final String methodSignature = getMethodSignature( element );
-    processingEnv.getMessager().printMessage( Diagnostic.Kind.NOTE, methodSignature );
 
     // Check modifiers
     if (!element.getModifiers().containsAll( EXPECTED_METHOD_MODIFIERS )) {
@@ -139,85 +183,4 @@ public class OpenwhiskProcessor extends AbstractProcessor {
 
     return true;
   }
-
-  private String getMethodSignature( final Element element ) {
-    final ExecutableType type = (ExecutableType) element.asType();
-
-    final StringBuilder signatureBuilder = new StringBuilder();
-    signatureBuilder.append( Joiner.on( SPACE ).join( element.getModifiers() ) ).append( SPACE );
-    signatureBuilder.append( type.getReturnType() ).append( SPACE );
-    signatureBuilder.append( element.getSimpleName() ).append( "(" );
-    // TODO: args
-    signatureBuilder.append( ")" );
-    return signatureBuilder.toString();
-  }
-
-  private void writeBuilderFile( String className, Map<String, String> setterMap )
-      throws IOException {
-
-    String packageName = null;
-    int lastDot = className.lastIndexOf( '.' );
-    if (lastDot > 0) {
-      packageName = className.substring( 0, lastDot );
-    }
-
-    String simpleClassName = className.substring( lastDot + 1 );
-    String builderClassName = className + "Builder";
-    String builderSimpleClassName = builderClassName.substring( lastDot + 1 );
-
-    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile( builderClassName );
-    try (PrintWriter out = new PrintWriter( builderFile.openWriter() )) {
-
-      if (packageName != null) {
-        out.print( "package " );
-        out.print( packageName );
-        out.println( ";" );
-        out.println();
-      }
-
-      out.print( "public class " );
-      out.print( builderSimpleClassName );
-      out.println( " {" );
-      out.println();
-
-      out.print( "    private " );
-      out.print( simpleClassName );
-      out.print( " object = new " );
-      out.print( simpleClassName );
-      out.println( "();" );
-      out.println();
-
-      out.print( "    public " );
-      out.print( simpleClassName );
-      out.println( " build() {" );
-      out.println( "        return object;" );
-      out.println( "    }" );
-      out.println();
-
-      setterMap.entrySet().forEach( setter -> {
-        String methodName = setter.getKey();
-        String argumentType = setter.getValue();
-
-        out.print( "    public " );
-        out.print( builderSimpleClassName );
-        out.print( " " );
-        out.print( methodName );
-
-        out.print( "(" );
-
-        out.print( argumentType );
-        out.println( " value) {" );
-        out.print( "        object." );
-        out.print( methodName );
-        out.println( "(value);" );
-        out.println( "        return this;" );
-        out.println( "    }" );
-        out.println();
-      } );
-
-      out.println( "}" );
-
-    }
-  }
-
 }
