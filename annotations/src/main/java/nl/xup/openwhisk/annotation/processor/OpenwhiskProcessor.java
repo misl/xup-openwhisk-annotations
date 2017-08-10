@@ -1,7 +1,10 @@
 package nl.xup.openwhisk.annotation.processor;
 
+import java.io.Writer;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,6 +19,12 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ExecutableType;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 
 import com.google.auto.service.AutoService;
 
@@ -63,6 +72,18 @@ public class OpenwhiskProcessor extends AbstractProcessor {
       }
     }
 
+    if (!model.getPackages().isEmpty()) {
+      try {
+        final VelocityEngine engine = initTemplateEngine();
+  
+        generateFile( engine, "openwhisk.model.vm", model );
+        generateFile( engine, "rewhisk.sh.vm", model );
+      } catch ( final Exception ex ) {
+        processingEnv.getMessager().printMessage( Diagnostic.Kind.ERROR,
+            "Generating resouces failed!" );
+      }
+    }
+       
     return true;
   }
 
@@ -182,5 +203,36 @@ public class OpenwhiskProcessor extends AbstractProcessor {
     }
 
     return true;
+  }
+  
+  private VelocityEngine initTemplateEngine() throws Exception {
+    final Properties props = new Properties();
+    final URL url = this.getClass().getClassLoader().getResource("velocity.properties");
+    props.load(url.openStream());
+
+    final VelocityEngine ve = new VelocityEngine(props);
+    ve.init();
+    
+    return ve;
+  }
+  
+  private void generateFile( final VelocityEngine engine, final String templateFile, final Model model ) throws Exception {
+    final VelocityContext vc = new VelocityContext();
+    vc.put("packages", model.getPackages());
+
+    Template vt = engine.getTemplate(templateFile);
+
+    FileObject fileObject = processingEnv.getFiler().createResource(StandardLocation.SOURCE_OUTPUT,
+        "", templateFile.replaceAll( "\\.vm", "" ));
+
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "creating resource file: " + fileObject.toUri());
+
+    Writer writer = fileObject.openWriter();
+
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "applying velocity template: " + vt.getName());
+
+    vt.merge(vc, writer);
+
+    writer.close();
   }
 }
