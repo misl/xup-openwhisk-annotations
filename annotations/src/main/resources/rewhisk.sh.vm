@@ -1,0 +1,40 @@
+#/bin/sh
+
+whisk_action_create_or_update () {
+    ACTION=$1; shift
+    FILE=$1; shift
+    wsk action get -s $ACTION 2> /dev/null
+    if [ $? -eq 0 ]
+    then
+        echo Updating action $ACTION referring to $FILE
+        wsk action update $ACTION $FILE $*
+    else
+        echo Creating action $ACTION referring to $FILE
+        wsk action create $ACTION $FILE $*
+    fi
+}
+
+whisk_package_create_or_update () {
+    PACKAGE=$1; shift
+    wsk package get -s $PACKAGE 2> /dev/null
+    if [ $? -eq 0 ]
+    then
+        echo Updating package $PACKAGE referring to $FILE
+        wsk package update $PACKAGE $*
+    else
+        echo Creating action $PACKAGE referring to $FILE
+        wsk package create $PACKAGE $*
+    fi
+}
+
+#foreach($package in $packages)
+whisk_package_create_or_update ${package.name} /
+  #foreach($annotation in $package.annotations)-a ${annotation.key} ${annotation.value} #end
+  #foreach($parameter in $package.parameters)-a ${parameter.key} ${parameter.value} #end
+  #foreach($action in $package.actions)
+  whisk_action_create_or_update ${package.name}/${action.name} $bundle --main ${action.entrypoint} /
+    #foreach($annotation in $action.annotations)-a ${annotation.key} ${annotation.value} #end
+    #foreach($parameter in $action.parameters)-a ${parameter.key} ${parameter.value} #end
+  #end
+
+#end
