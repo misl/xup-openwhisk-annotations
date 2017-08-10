@@ -4,20 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Model object to contain all Action attributes needed for annotation 
- * processing.
+ * Model object to contain Openwhisk Package attributes needed for annotation processing.
  * 
  * @author misl
  */
-public class Action {
-  
+public class Package {
+
   // --------------------------------------------------------------------------
   // Object attributes
   // --------------------------------------------------------------------------
 
-  private String actionName;
-  private String packageName;
-  private String entrypoint;
+  private String name;
+  private Map<String, Action> actions = new HashMap<>();
   private Map<String, Annotation> annotations = new HashMap<>();
   private Map<String, Parameter> parameters = new HashMap<>();
 
@@ -25,30 +23,18 @@ public class Action {
   // Getters / Setters
   // --------------------------------------------------------------------------
 
-  public String getActionName() {
-    return actionName;
+  public String getName() {
+    return name;
   }
 
-  public void setActionName( String actionName ) {
-    this.actionName = actionName;
+  public void setName( String name ) {
+    this.name = name;
   }
 
-  public String getPackageName() {
-    return packageName;
+  public Map<String, Action> getActions() {
+    return actions;
   }
 
-  public void setPackageName( String packageName ) {
-    this.packageName = packageName;
-  }
-
-  public String getEntrypoint() {
-    return entrypoint;
-  }
-  
-  public void setEntrypoint( String entrypoint ) {
-    this.entrypoint = entrypoint;
-  } 
-  
   public Map<String, Annotation> getAnnotations() {
     return annotations;
   }

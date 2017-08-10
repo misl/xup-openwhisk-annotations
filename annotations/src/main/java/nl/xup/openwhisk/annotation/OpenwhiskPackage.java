@@ -21,7 +21,7 @@ public @interface OpenwhiskPackage {
    * 
    * @return String with the package name
    */
-  String name() default "";
+  String name();
   
   /**
    * The Openwhisk annotations applicable for the package.
