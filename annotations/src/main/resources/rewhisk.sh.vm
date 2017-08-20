@@ -11,10 +11,10 @@ whisk_action_create_or_update () {
     if [ $? -eq 0 ]
     then
         echo Updating action $ACTION referring to $FILE
-        wsk action update $ACTION $FILE $*
+        wsk action update $ACTION $FILE "$@"
     else
         echo Creating action $ACTION referring to $FILE
-        wsk action create $ACTION $FILE $*
+        wsk action create $ACTION $FILE "$@"
     fi
 }
 
@@ -24,16 +24,16 @@ whisk_package_create_or_update () {
     if [ $? -eq 0 ]
     then
         echo Updating package $PACKAGE
-        wsk package update $PACKAGE $*
+        wsk package update $PACKAGE "$@"
     else
         echo Creating action $PACKAGE
-        wsk package create $PACKAGE $*
+        wsk package create $PACKAGE "$@"
     fi
 }
 
-if [ -f "$1" ]
+if [ ! -f "$1" ]
 then
-  (>&2 echo "Error: action jar is missing, start build first!")
+  (>&2 echo "Error: action jar '$1' is missing, start build first!")
   exit 1;
 fi
 
