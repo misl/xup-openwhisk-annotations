@@ -24,7 +24,7 @@
   <properties>
     <auto-service.version>1.0-rc2</auto-service.version>
     <guava.version>23.0</guava.version>
-    <velocity.version>1.5</velocity.version>
+    <velocity.version>1.7</velocity.version>
     
     <compile-testing.version>0.6</compile-testing.version>
   </properties>
@@ -42,7 +42,7 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>velocity</groupId>
+      <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
       <version>${velocity.version}</version>
     </dependency>

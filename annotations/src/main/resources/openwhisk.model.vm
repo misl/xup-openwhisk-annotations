@@ -4,29 +4,25 @@
       "annotations": [#foreach($annotation in $package.annotations){
           "key": "${annotation.key}",
           "value": "${annotation.value}"
-        }#if( $foreach.hasNext ),#end
-      #end]
+        }#if( $foreach.hasNext ), #end#end],
       "parameters": [#foreach($parameter in $package.parameters){
           "key": "${parameter.key}",
           "value": "${parameter.value}"
-        }#if( $foreach.hasNext ),#end
-      #end],       
+        }#if( $foreach.hasNext ), #end#end],       
       "actions": [#foreach($action in $package.actions){
           "name": "${action.name}",
           "exec": {
             "kind": "java",
             "main": "${action.entrypoint}"
-          } 
+          }, 
           "annotations": [#foreach($annotation in $action.annotations){
               "key": "${annotation.key}",
               "value": "${annotation.value}"
-            }#if( $foreach.hasNext ),#end
-            #end]
+            }#if( $foreach.hasNext ), #end#end],
           "parameters": [#foreach($parameter in $action.parameters){
               "key": "${parameter.key}",
               "value": "${parameter.value}"
-            }#if( $foreach.hasNext ),#end
-            #end]
-        }#if( $foreach.hasNext ),#end#end]
+            }#if( $foreach.hasNext ), #end#end]
+        }#if( $foreach.hasNext ), #end#end]
     }#end]
 }
