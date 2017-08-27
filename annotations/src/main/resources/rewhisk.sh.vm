@@ -38,10 +38,10 @@ then
 fi
 
 #foreach($package in $packages)
-whisk_package_create_or_update "${package.name}" #foreach($annotation in $package.annotations)-a "${annotation.key}" "${annotation.value}" #end #foreach($parameter in $package.parameters)-a "${parameter.key}" "${parameter.value}" #end
+whisk_package_create_or_update "${package.name}" #foreach($annotation in $package.annotations)-a "${annotation.key}" "${annotation.value}" #end #foreach($parameter in $package.parameters)-p "${parameter.key}" "${parameter.value}" #end
 
 #foreach($action in $package.actions)
-whisk_action_create_or_update "${package.name}/${action.name}" $1 --main ${action.entrypoint} #foreach($annotation in $action.annotations)-a "${annotation.key}" "${annotation.value}" #end #foreach($parameter in $action.parameters)-a "${parameter.key}" "${parameter.value}" #end 
+whisk_action_create_or_update "${package.name}/${action.name}" $1 --main ${action.entrypoint} #foreach($annotation in $action.annotations)-a "${annotation.key}" "${annotation.value}" #end #foreach($parameter in $action.parameters)-p "${parameter.key}" "${parameter.value}" #end 
 
 #end
 
